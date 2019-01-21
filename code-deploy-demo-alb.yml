@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+################################################################################
+# Resources
+################################################################################
+Resources:
+  TargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Name: code-deploy-demo-tg
+      Protocol: HTTP
+      Port: 80
+      #VpcId: vpc-06850e1ada9175010
+      #VpcId: !ImportValue 172612068623-us-east-2-code-deploy-demo-vpc
+      VpcId:
+        Fn::ImportValue:
+          Fn::Join: ['-',['Fn::Sub':'${AWS::AccountId}','Fn::Sub':'${AWS::Region}','code-deploy-demo-vpc']]
+  LoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: code-deploy-demo-alb
+      SecurityGroups:
+        - Fn::ImportValue: 
+            Fn::Join: ['-',['Fn::Sub':'${AWS::AccountId}','Fn::Sub':'${AWS::Region}','code-deploy-demo-sg']]
+      Subnets:      
+        - Fn::ImportValue:
+            Fn::Join: ['-',['Fn::Sub':'${AWS::AccountId}','Fn::Sub':'${AWS::Region}','code-deploy-demo-subnet1']]
+        - Fn::ImportValue:
+            Fn::Join: ['-',['Fn::Sub':'${AWS::AccountId}','Fn::Sub':'${AWS::Region}','code-deploy-demo-subnet2']]
+      IpAddressType: ipv4
+  Lister:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - TargetGroupArn: !Ref TargetGroup
+          Type: forward
+      LoadBalancerArn: !Ref LoadBalancer
+      Port: 80
+      Protocol: HTTP
+
+################################################################################
+# Outputs
+################################################################################
+Outputs:
+  TargetGroupArn:
+    Value: !Ref TargetGroup
+    Export:
+      Name: !Join ['-', ['Fn::Sub':'${AWS::AccountId}', 'Fn::Sub':'${AWS::Region}', 'code-deploy-demo-tg']]
