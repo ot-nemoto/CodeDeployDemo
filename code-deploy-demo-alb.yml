@@ -3,6 +3,18 @@ AWSTemplateFormatVersion: '2010-09-09'
 ################################################################################
 # Resources
 ################################################################################
+Parameters:
+  TargetType:
+    Description: The registration type of the targets in this target group
+    Type: String
+    Default: instance
+    AllowedValues:
+      - instance
+      - ip
+
+################################################################################
+# Resources
+################################################################################
 Resources:
   TargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -10,8 +22,7 @@ Resources:
       Name: code-deploy-demo-tg
       Protocol: HTTP
       Port: 80
-      #VpcId: vpc-06850e1ada9175010
-      #VpcId: !ImportValue 172612068623-us-east-2-code-deploy-demo-vpc
+      TargetType: !Ref TargetType
       VpcId:
         Fn::ImportValue:
           Fn::Join: ['-',['Fn::Sub':'${AWS::AccountId}','Fn::Sub':'${AWS::Region}','code-deploy-demo-vpc']]
